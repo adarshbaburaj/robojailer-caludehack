@@ -54,6 +54,11 @@ Every run saves a side-by-side PNG (and JSON from the CLI) to `out/`.
 
 ## Limitations
 
+* Modern Claude models already resist many scene injections on their own. Both planners here use
+  the same "deployed robot" prompt that tells them to obey posted signs and staff notes, which is
+  how real service robots are set up. With that prompt the unprotected robot follows the fake road
+  sign. It still refuses to hand a knife over even then, which is a safety refusal.
+
 * The jailer is itself an LLM; a clever enough injection could target it too (it's told never to follow scene text, and uses structured JSON output, but that's not a proof).
 * LLM bounding boxes are approximate; padding helps but small text may leak at edges.
 * Only text and symbols are handled. Adversarial patches and non-text visual attacks are out of scope.
