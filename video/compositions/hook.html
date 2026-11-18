@@ -1,0 +1,19 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #0a0a0a; color: #f5f5f5; font-family: Inter, sans-serif; }
+    .hook-line { position: absolute; left: 0; right: 0; text-align: center; font-weight: 700; letter-spacing: -0.03em; }
+    #hook-a { top: 380px; font-size: 76px; }
+    #hook-b { top: 520px; font-size: 76px; color: #ff3b30; }
+  </style>
+  <div id="root" data-composition-id="hook" data-width="1920" data-height="1080">
+    <div id="hook-a" class="clip hook-line" data-start="0" data-duration="4.5">Robots read the world with AI.</div>
+    <div id="hook-b" class="clip hook-line" data-start="1.2" data-duration="3.3">So anyone with a pen can give them orders.</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#hook-a", { opacity: 1, y: 0 }, { opacity: 1, y: 0, duration: 0.01 }, 0);
+    tl.fromTo("#hook-b", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 1.2);
+    tl.to(["#hook-a", "#hook-b"], { opacity: 0, duration: 0.35, ease: "power2.in" }, 4.05);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>

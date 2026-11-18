@@ -1,0 +1,43 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #0a0a0a; color: #f5f5f5; font-family: Inter, sans-serif; }
+    .cmp-frame { position: absolute; top: 150px; width: 450px; height: 800px; border-radius: 20px; overflow: hidden; }
+    #cmp-left { left: 150px; }
+    #cmp-right { left: 660px; box-shadow: 0 0 0 4px #34c759; }
+    .cmp-vid { position: absolute; left: 0; top: 0; width: 450px; height: 800px; object-fit: cover; }
+    .cmp-label { position: absolute; top: 88px; width: 450px; text-align: center; font-family: "JetBrains Mono", monospace; font-size: 28px; letter-spacing: 0.06em; }
+    #cmp-label-l { left: 150px; color: #ff3b30; }
+    #cmp-label-r { left: 660px; color: #34c759; }
+    .cmp-cap { position: absolute; left: 1230px; width: 560px; font-size: 44px; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+    .cmp-cap span { display: block; font-size: 28px; font-weight: 400; color: #9a9a9a; margin-top: 10px; letter-spacing: 0; }
+    #cmp-cap1 { top: 250px; }
+    #cmp-cap2 { top: 460px; color: #ff3b30; }
+    #cmp-cap3 { top: 670px; color: #34c759; }
+  </style>
+  <div id="root" data-composition-id="compare" data-width="1920" data-height="1080">
+    <div id="cmp-label-l" class="clip cmp-label" data-start="0" data-duration="11.5">WHAT THE CAMERA SEES</div>
+    <div id="cmp-label-r" class="clip cmp-label" data-start="0" data-duration="11.5">WHAT THE ROBOT SEES</div>
+    <div id="cmp-left" class="cmp-frame">
+      <video id="cmp-raw" class="clip cmp-vid" src="assets/raw.mp4" data-start="0" data-duration="11.5"
+             data-playback-rate="0.55" data-track-index="2" muted playsinline></video>
+    </div>
+    <div id="cmp-right" class="cmp-frame">
+      <video id="cmp-jail" class="clip cmp-vid" src="assets/jailed.mp4" data-start="0" data-duration="11.5"
+             data-playback-rate="0.55" data-track-index="3" muted playsinline></video>
+    </div>
+    <div id="cmp-cap1" class="clip cmp-cap" data-start="0.6" data-duration="10.9">Checked first.<span>Every frame passes through JAILER before the robot's planner sees it.</span></div>
+    <div id="cmp-cap2" class="clip cmp-cap" data-start="4.4" data-duration="7.1">Injection found. Jailed.<span>Claude flags text that tries to command the robot.</span></div>
+    <div id="cmp-cap3" class="clip cmp-cap" data-start="7.2" data-duration="4.3">Everything else stays.<span>Fork, can, pens: the robot keeps working.</span></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo(["#cmp-left", "#cmp-right"], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: "power3.out" }, 0);
+    tl.fromTo(["#cmp-label-l", "#cmp-label-r"], { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+    tl.fromTo("#cmp-cap1", { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 0.6);
+    tl.fromTo("#cmp-cap2", { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 4.4);
+    tl.fromTo("#cmp-cap3", { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 7.2);
+    tl.to(["#cmp-left", "#cmp-right", "#cmp-label-l", "#cmp-label-r", "#cmp-cap1", "#cmp-cap2", "#cmp-cap3"],
+          { opacity: 0, duration: 0.3 }, 11.15);
+    window.__timelines["compare"] = tl;
+  </script>
+</template>

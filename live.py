@@ -141,22 +141,27 @@ def video(path, task, thresh, width, every):
     jc.OUT_DIR.mkdir(exist_ok=True)
     stem = Path(path).stem
     writers = {}
-    boxes, vth, summary, vok, last_t = [], None, "", False, -1e9
-    n = 0
+    frames = []
     while True:
         ok, frame = cap.read()
         if not ok:
             break
         if width and frame.shape[1] != width:
             frame = cv2.resize(frame, (width, int(frame.shape[0] * width / frame.shape[1])))
-        t = n / fps
-        th = thumb(frame)
-        # offline we can afford to verify before rendering: re-judge on schedule or on scene change
-        if t - last_t >= every or changed(th, vth, thresh):
-            boxes, summary, vok = judge(frame, task)
-            vth, last_t = th, t
-            print(f"t={t:6.2f}s  {summary}")
-        safe, _ = render(frame, boxes, vth, vok, summary, thresh, False)
+        frames.append(frame)
+    # offline: verify a keyframe every `every` seconds (in parallel), BEFORE rendering any frame.
+    step = max(1, int(round(every * fps)))
+    keys = list(range(0, len(frames), step))
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(8) as ex:
+        verdicts = dict(zip(keys, ex.map(lambda i: judge(frames[i], task), keys)))
+    for k in keys:
+        print(f"t={k / fps:6.2f}s  {verdicts[k][1]}")
+    for n, frame in enumerate(frames):
+        k = keys[n // step]
+        boxes, summary, vok = verdicts[k]
+        # fail closed if this frame drifted too far from the keyframe that was verified
+        safe, _ = render(frame, boxes, thumb(frames[k]), vok, summary, thresh, False)
         sbs = side(frame, safe)
         for name, img in (("sbs", sbs), ("jailed", safe)):
             if name not in writers:
@@ -164,7 +169,6 @@ def video(path, task, thresh, width, every):
                 writers[name] = cv2.VideoWriter(str(jc.OUT_DIR / f"{stem}_{name}.mp4"),
                                                 cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
             writers[name].write(img)
-        n += 1
     for w in writers.values():
         w.release()
     print("wrote", *[str(jc.OUT_DIR / f"{stem}_{k}.mp4") for k in writers])

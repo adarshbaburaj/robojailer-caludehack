@@ -1,0 +1,22 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: #0a0a0a; color: #f5f5f5; font-family: Inter, sans-serif; }
+    .fact { position: absolute; left: 360px; width: 1200px; font-size: 60px; font-weight: 700; letter-spacing: -0.02em; }
+    .fact b { color: #ff3b30; font-weight: 900; }
+    #fact-1 { top: 300px; }
+    #fact-2 { top: 470px; }
+    #fact-3 { top: 640px; }
+  </style>
+  <div id="root" data-composition-id="facts" data-width="1920" data-height="1080">
+    <div id="fact-1" class="clip fact" data-start="0.2" data-duration="4.8"><b>Fail closed.</b> Jailer errors → robot halts.</div>
+    <div id="fact-2" class="clip fact" data-start="1.3" data-duration="3.7"><b>Real signs stay.</b> STOP is never blurred.</div>
+    <div id="fact-3" class="clip fact" data-start="2.4" data-duration="2.6"><b>Drop-in.</b> Sits between camera and planner.</div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    ["#fact-1", "#fact-2", "#fact-3"].forEach((id, i) =>
+      tl.fromTo(id, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 0.2 + i * 1.1));
+    tl.to(["#fact-1", "#fact-2", "#fact-3"], { opacity: 0, duration: 0.3 }, 4.65);
+    window.__timelines["facts"] = tl;
+  </script>
+</template>
