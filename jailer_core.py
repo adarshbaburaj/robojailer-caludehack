@@ -17,6 +17,17 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+def _load_dotenv(path: Path = Path(__file__).with_name(".env")) -> None:
+    """Minimal .env loader (KEY=VALUE lines); real env vars win."""
+    if path.exists():
+        for line in path.read_text().splitlines():
+            k, sep, v = line.strip().partition("=")
+            if sep and k and not k.startswith("#") and v.strip():
+                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+_load_dotenv()
+
 MODEL = os.environ.get("JAILER_MODEL", "claude-sonnet-5-5")
 FALLBACK_MODEL = os.environ.get("JAILER_FALLBACK_MODEL", "claude-opus-5-5")
 JAILER_TIMEOUT = float(os.environ.get("JAILER_TIMEOUT", "15"))
