@@ -71,14 +71,19 @@ def judge(frame, task):
         return [], f"JAILER FAILED ({type(e).__name__}) - HALT", False
 
 
-def render(frame, verdict_boxes, verdict_thumb, ok, summary, thresh, pending):
+def render(frame, verdict_boxes, verdict_thumb, ok, summary, thresh, pending, strict=True):
+    """strict: any scene change blurs the whole frame until re-verified (max safety).
+    non-strict: only a missing/failed verdict blurs the whole frame; otherwise the latest
+    jailed boxes are applied while JAILER keeps re-checking in the background."""
     th = thumb(frame)
-    if not ok or changed(th, verdict_thumb, thresh):
+    if not ok or (strict and changed(th, verdict_thumb, thresh)):
         safe = jc.fail_closed_frame(frame)
         msg = "SCENE CHANGED - VERIFYING..." if pending else (summary if not ok else "UNVERIFIED")
         return banner(safe, msg, (0, 200, 255)), False
     safe = jc.jail_boxes(frame, verdict_boxes) if verdict_boxes else frame
     color = (0, 0, 255) if verdict_boxes else (80, 220, 80)
+    if pending and not strict:
+        summary = summary + "  (re-checking...)"
     return banner(safe, summary, color), True
 
 
@@ -88,7 +93,7 @@ def side(raw, safe):
                       header(safe, "WHAT THE ROBOT SEES (JAILER)", (80, 220, 80))])
 
 
-def live(cam, task, thresh, width):
+def live(cam, task, thresh, width, strict=False):
     cap = cv2.VideoCapture(cam)
     if not cap.isOpened():
         raise SystemExit(f"cannot open camera {cam}")
@@ -101,11 +106,12 @@ def live(cam, task, thresh, width):
         while not stop.is_set():
             f = latest["frame"]
             _, vth, _, ok = v.get()
-            if f is None or (ok and not changed(thumb(f), vth, thresh)):
+            # strict: re-check only on scene change; default: re-check back-to-back, always
+            if f is None or (strict and ok and not changed(thumb(f), vth, thresh)):
                 time.sleep(0.1)
                 continue
             # wait for the scene to settle a moment so we judge a steady frame
-            time.sleep(0.4)
+            time.sleep(0.4 if strict else 0.05)
             f = latest["frame"].copy()
             busy.set()
             boxes, msg, ok = judge(f, task)
@@ -124,7 +130,7 @@ def live(cam, task, thresh, width):
             frame = cv2.resize(frame, (width, int(frame.shape[0] * width / frame.shape[1])))
         latest["frame"] = frame
         boxes, vth, summary, vok = v.get()
-        safe, _ = render(frame, boxes, vth, vok, summary, thresh, busy.is_set())
+        safe, _ = render(frame, boxes, vth, vok, summary, thresh, busy.is_set(), strict)
         cv2.imshow("JAILER live", side(frame, safe))
         if cv2.waitKey(1) & 0xFF in (ord("q"), 27):
             break
@@ -182,9 +188,11 @@ if __name__ == "__main__":
     ap.add_argument("--thresh", type=float, default=3.0,
                     help="scene-change threshold: %% of pixels changed (raise if it flickers)")
     ap.add_argument("--width", type=int, default=960)
+    ap.add_argument("--strict", action="store_true",
+                    help="live mode: blur the WHOLE frame on any scene change until re-verified")
     ap.add_argument("--every", type=float, default=2.0, help="video mode: re-judge every N seconds")
     a = ap.parse_args()
     if a.video:
         video(a.video, a.task, a.thresh, a.width, a.every)
     else:
-        live(a.cam, a.task, a.thresh, a.width)
+        live(a.cam, a.task, a.thresh, a.width, a.strict)
