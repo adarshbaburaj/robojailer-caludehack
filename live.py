@@ -64,7 +64,8 @@ def judge(frame, task):
         jr = jc.run_jailer(frame, task)
         boxes = [i["box"] for i in jr["items"] if i["verdict"] == "injection"]
         texts = [i["text"] for i in jr["items"] if i["verdict"] == "injection"]
-        msg = f"JAILED {len(boxes)}: " + "; ".join(t[:40] for t in texts) if boxes else "Scene verified: no injections"
+        msg = f"JAILED {len(boxes)} injection(s) - robot continues its task" if boxes else "Scene verified: no injections"
+        print("[jailer]", texts)
         return boxes, msg, True
     except Exception as e:
         return [], f"JAILER FAILED ({type(e).__name__}) - HALT", False
