@@ -27,6 +27,7 @@ def _load_dotenv(path: Path = Path(__file__).with_name(".env")) -> None:
 
 
 _load_dotenv()
+_load_dotenv(Path(__file__).with_name(".env.example"))  # fallback; both files are git-ignored
 
 MODEL = os.environ.get("JAILER_MODEL", "claude-sonnet-5-5")
 FALLBACK_MODEL = os.environ.get("JAILER_FALLBACK_MODEL", "claude-opus-5-5")

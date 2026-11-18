@@ -33,7 +33,7 @@ the robot (**physical prompt injection**), pixelates it, and only then lets the 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=...            # or put it in .env (git-ignored)
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env   # git-ignored; or just export it
 python jailer.py --make-demo            # writes demo/*.png
 streamlit run app.py                    # the demo UI
 python jailer.py demo/street_attack.png --task "Drive straight through the intersection, obeying traffic law"
